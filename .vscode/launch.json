@@ -1,0 +1,48 @@
+// attach to qemu (gdbserver) from vscode 
+// in general, better visual but (1) extra setup (2) not as powerful vs. command line gdb? 
+// steps: 
+// 1. start qemu with gdbserver 
+// 2. vscode, debugger view (ctrl+shift+d), select "QEMU" or "QEMU(PA)" and then run
+// raw gdb commands/output can be done from vscode -> debug console
+// works: breakpoint, show disasm, single step after breakpoint
+// does not work: stop upon entry, then single step
+// unsure: set breakpoint at certain addr
+// (fxl, 3/8/2025)
+
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "QEMU(PA)",   // debug use kernel8-bootdebug (see below)
+        "type": "cppdbg",
+        "request": "launch",    // Use "launch" instead of "attach" for remote
+        "program": "${workspaceFolder}/kernel/build-rpi3qemu/kernel8-bootdebug.elf",
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb-multiarch",
+        "miDebuggerArgs": "-nx", // not loading default gdbinit file
+        "miDebuggerServerAddress": "localhost:58176",
+        "setupCommands": [
+            { "text": "set disassemble-next-line on" }
+        ],        
+        "cwd": "${workspaceFolder}",
+        "stopAtConnect": true,
+        "targetArchitecture": "arm64",
+      },
+      {
+        "name": "QEMU",
+        "type": "cppdbg",
+        "request": "launch",    // Use "launch" instead of "attach" for remote
+        "program": "${workspaceFolder}/kernel/build-rpi3qemu/kernel8.elf",
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb-multiarch",
+        "miDebuggerArgs": "-nx", // not loading default gdbinit file
+        "miDebuggerServerAddress": "localhost:58176",
+        "setupCommands": [
+            { "text": "set disassemble-next-line on" }
+        ],        
+        "cwd": "${workspaceFolder}",
+        "stopAtConnect": true,
+        "targetArchitecture": "arm64",
+      }      
+    ]
+  }
