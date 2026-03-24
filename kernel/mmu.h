@@ -96,7 +96,7 @@ https://github.com/codingbelief/arm-architecture-reference-manual-for-armv8-a/bl
 // extract perm bits from pte
 #define PTE_TO_PERM(x)      (x & (unsigned long)(MM_AP_MASK | MM_XN_MASK))
 // extract pa from pte. assuming pa within 32bits TODO: fix this for larger phys mem system...
-#define PTE_TO_PA(x)        (x & (0xffffffff) & PAGE_MASK)
+#define PTE_TO_PA(x)        (x & 0x0000FFFFFFFFF000ULL)
 #ifndef __ASSEMBLER__    
     _Static_assert(PHYS_SIZE < 0xffffffff);
 #endif
@@ -127,7 +127,11 @@ https://github.com/codingbelief/arm-architecture-reference-manual-for-armv8-a/bl
 #define MT_NORMAL_WT_FLAGS  		0xbb
 #define MT_NORMAL_FLAGS  		    0xff
 
-#define MAIR_VALUE 0 /* TODO: replace this */
+#define MAIR_VALUE ( \
+    (MT_DEVICE_nGnRnE_FLAGS << (MT_DEVICE_nGnRnE * 8)) | \
+    (MT_NORMAL_NC_FLAGS     << (MT_NORMAL_NC * 8))     | \
+    (MT_NORMAL_FLAGS        << (MT_NORMAL * 8))          \
+) /* TODO: replace this */
 
 #define MMU_FLAGS	 		(MM_TYPE_BLOCK | (MT_NORMAL << 2) | MM_ACCESS)	    /* block (eg section) granuarlity, memory */
 #define MMU_DEVICE_FLAGS	(MM_TYPE_BLOCK | (MT_DEVICE_nGnRnE << 2) | MM_ACCESS)	/* block (eg section) granuarlity, devices */

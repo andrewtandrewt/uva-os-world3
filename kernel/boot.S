@@ -97,8 +97,10 @@ setup_sp:
 	// Set virt sp = 4096 + boot_stacks
 	// (assuming linear mapping, phys 0 --> virt VA_START)	
 	/* TODO: your code here */
+	ldr x0, =boot_stacks
+    add x0, x0, #4096    // Point to the TOP of the stack
+    mov sp, x0           // SP must be a high virtual address (0xffff...)
 	// NB: we aren't using sp yet -- until mmu is on
-
 	// below is new vs. boot.S in lab1/2
 	// load kernel's pgtable
 	adrp	x0, pg_dir		// @pg_dir: the virtual base address of pgtables. cf utils.h
@@ -127,4 +129,5 @@ setup_sp:
 	/* TODO: your code here */
 	ldr x0, =SCTLR_VALUE // Turn on MMU. cf sysregs.h
 	msr	sctlr_el1, x0	// BOOM! after this, this core runs on virtual addr
+	ldr x2, =kernel_main
 	br 	x2				// Jump to kernel_main() (kernel.c)

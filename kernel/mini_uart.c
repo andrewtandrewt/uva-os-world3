@@ -94,10 +94,10 @@ long uart_send_profile (char c)
 
 void uart_send (char c)
 {
-	while(1) {
-		if(get32va(AUX_MU_LSR_REG) & 0x20) 
-			break;
-	}
+	// while(1) {
+	// 	if(get32va(AUX_MU_LSR_REG) & 0x20) 
+	// 		break;
+	// }
 	put32va(AUX_MU_IO_REG, c);
 }
  

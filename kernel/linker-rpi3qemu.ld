@@ -2,8 +2,8 @@
 
 SECTIONS
 {
-	/* Q1: kernel virtaddr */
-	. = 0; /* TODO: replace this */
+	/* Q1: kernel virtaddr use VA_START*/
+	. = 0xffff000000080000; /* TODO: replace this */
 	.text.boot : { *(.text.boot) }
 
 	/* include user text/data compiled as part of kernel 
@@ -26,6 +26,7 @@ SECTIONS
 	. = ALIGN(512);		/*sector aligned*/
 	nes_start = .; 
 	/* TODO: your code here */
+	.nes : { build-rpi3qemu/nes* (.data) }
 	/* we don't need to set "nes_end" */
 	
 	. = ALIGN(512);		/*sector aligned*/

@@ -1,4 +1,3 @@
-# Notes: see EOF
 
 # must do this for Linux + VSCode
 # https://github.com/ros2/ros2/issues/1406
