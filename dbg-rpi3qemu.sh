@@ -2,7 +2,7 @@
 
 p1-gen-hash-ports() {
     if [ "${USER}" = "student" ]; then
-        export MYGDBPORT=53089  # special rule, for ease deployment of the VM image
+        export MYGDBPORT=62307  # special rule, for ease deployment of the VM image
     else
         export MYGDBPORT=$(echo -n ${USER} | md5sum | cut -c1-8 | while read hex; do
             decimal=$((0x$hex & 0xffffffff))  # Convert to decimal and ensure 32-bit
