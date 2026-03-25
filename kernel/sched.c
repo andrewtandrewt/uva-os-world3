@@ -850,7 +850,7 @@ int copy_process(unsigned long clone_flags, unsigned long fn, unsigned long arg,
 	initlock(&p->lock, "proc");
 
 	acquire(&p->lock);	
-    acquire(&cur->lock);	
+    acquire(&cur->lock);
 
 	struct trapframe *childregs = task_pt_regs(p);
 
@@ -861,8 +861,10 @@ int copy_process(unsigned long clone_flags, unsigned long fn, unsigned long arg,
         struct trapframe *cur_regs = task_pt_regs(cur);
         // copy over the parent's entire trapframe to the child
         /* TODO: your code here */
+        *childregs = *cur_regs;
         // set fork()'s return value for the child 
         /* TODO: your code here */
+        childregs->regs[0] = 0;
         if (clone_flags & PF_UTHREAD) {	// fork a "thread", i.e. child to share the parent's existing mm
             p->mm = cur->mm; BUG_ON(!p->mm);
             __atomic_add_fetch(&p->mm->ref, 1, __ATOMIC_SEQ_CST);
