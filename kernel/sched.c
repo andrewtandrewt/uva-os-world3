@@ -771,7 +771,7 @@ int move_to_user_mode_donut(unsigned long start, unsigned long size, unsigned lo
     unsigned long remain=size; 
     void *code_page; 
     unsigned long cnt=0;
-    while (0) { /* TODO: replace this */
+    while (remain > 0) { /* TODO: replace this */
         code_page = allocate_user_page_mm(cur->mm, cnt/*va*/, MMU_PTE_FLAGS | MM_AP_RW);
         if (code_page == 0)	{ release(&cur->mm->lock); BUG(); return -1;} // XXX shall reverse mappings
         int n = MIN(remain,PAGE_SIZE); 
@@ -782,32 +782,34 @@ int move_to_user_mode_donut(unsigned long start, unsigned long size, unsigned lo
 	
     // map fb to user VM, and pass its vaddr to the user process
     {
-        unsigned long fb_pa, fb_pa_end; 
-        BUG_ON(the_fb.fb == 0); 
-        fb_pa = VA2PA(the_fb.fb);  
+        unsigned long fb_pa, fb_pa_end;
+        unsigned long fb_user_va; /* TODO: preserve start VA for user_donut */
+        BUG_ON(the_fb.fb == 0);
+        fb_pa = VA2PA(the_fb.fb);
+        fb_user_va = fb_pa; // user-visible framebuffer base
         fb_pa_end = fb_pa + the_fb.vheight * the_fb.pitch;
 
         // below: reserve lookup physical addr (PA) for framebuffer (fb_pa):
         // fb_pa should be around 0x3c000000, which is suitable to be used as
-        // its user VA. 
+        // its user VA.
         // Note: 0x3c000000 exceeds USER_VA_END. This is acceptable
         // because USER_VA_END is only used in creating user code/data/stack
         // regions and for the kernel to validate user-passed pointers. The
         // user will not pass framebuffer addresses to the kernel.
 
-        // mmap fb area to user VM    
+        // mmap fb area to user VM
         for (; fb_pa < fb_pa_end; fb_pa += PAGE_SIZE) {
-            unsigned long * ret = map_page(cur->mm, 
-                0,0, /* TODO: replace this */
-                1 /* alloc pgtable on demand*/, 
-                MMU_PTE_FLAGS | MM_AP_RW /* perm */); 
-            BUG_ON(!ret);     
+            unsigned long * ret = map_page(cur->mm,
+                fb_pa, fb_pa, /* TODO: replace this */
+                1 /* alloc pgtable on demand*/,
+                MMU_PTE_FLAGS | MM_AP_RW /* perm */);
+            BUG_ON(!ret);
         }
 
         // populate args for user_donut(), which span x0--x7
         // cf user_donut() for the args it expects
-        regs->regs[0] = 0; /* TODO: replace this */
-        regs->regs[1] = 0; /* TODO: replace this */
+        regs->regs[0] = fb_user_va; /* TODO: replace this */
+        regs->regs[1] = the_fb.pitch; /* TODO: replace this */
     }
 
 	set_pgd(cur->mm->pgd);

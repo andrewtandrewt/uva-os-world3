@@ -272,7 +272,7 @@ int ktimer_start(unsigned delayms, TKernelTimerHandler *handler,
 // Note that this func is called by irq handler, with timerlock held
 // Q4: user donut
 static void wakehandler(TKernelTimerHandle hTimer, void *param, void *context) {
-	wakeup(0); /* TODO: replace this */
+	wakeup(param); /* TODO: replace this */
 }
 
 /*
@@ -298,13 +298,13 @@ int sys_sleep(int ms) {
 
 	/* TODO: your code here */
 
-	if (ms==0) return 0; // shortcut it
+	if (ms<0) return -1; // shortcut it
 
 	acquire(&timerlock); 
 	c0 = current_counter();
 	t = ktimer_start_nolock(ms, 
-		0, /* TODO: replace this */
-		0/*para*/, 0/*context*/); 
+		wakehandler, /* TODO: replace this */
+		&c0/*para*/, 0/*context*/); 
 	if (t<0) {release(&timerlock); BUG(); return -1;}
 	// we still hold timerlock, so timer irq hanler won't race w/ us
 	
@@ -314,7 +314,7 @@ int sys_sleep(int ms) {
             release(&timerlock);
             return -1;
 		}
-		sleep(0, 0); /* TODO: replace this */
+		sleep(&c0, &timerlock); /* TODO: replace this */
 	}
 	release(&timerlock); 
 	return 0; 

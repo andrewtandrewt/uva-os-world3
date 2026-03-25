@@ -41,7 +41,8 @@ void kernel_process() {
 		good for simple tasks */ 
 	/* TODO: your code here */
 	//Q2: err = move_to_user_mode(begin, end - begin, (unsigned long)user_process_hello - begin);
-	err = move_to_user_mode(begin, end - begin,(unsigned long)user_process_printers - begin);
+	//Q3: err = move_to_user_mode(begin, end - begin,(unsigned long)user_process_printers - begin);
+	err = move_to_user_mode_donut(begin, end - begin,(unsigned long)&user_donut - begin);
 	//move_to_user_mode(begin, end - begin, (unsigned long)&user_process_hello - begin);
 	/* alternatively, call "move_to_user_mode_donut". maps usr pages on demand. 
 		can launch: donut (kuser), nes0 (binary elf embedded). */

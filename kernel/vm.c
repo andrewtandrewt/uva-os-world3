@@ -548,13 +548,13 @@ unsigned long growproc (struct mm_struct *mm, int incr) {
 	int ret; 
 	
 	// careful: sz is unsigned; incr is signed
-	if (1) { /* TODO: replace this */
+	if (incr < 0 && (unsigned long)(-incr) > sz) { /* TODO: replace this */
 		W("incr too small"); 
 		W("sz 0x%lx %ld (dec) incr %d (dec). requested new brk 0x%lx", 
 			sz, sz, incr, sz+incr); 
 		goto bad; 
 	}
-	if (1) { /* TODO: replace this */
+	if (incr > 0 && sz + (unsigned long)incr > USER_VA_END - USER_MAX_STACK) { /* TODO: replace this */
 		W("incr too large"); 
 		W("sz 0x%lx %ld (dec) incr %d (dec). requested new brk 0x%lx", 
 		sz, sz, incr, sz+incr); 
@@ -562,7 +562,7 @@ unsigned long growproc (struct mm_struct *mm, int incr) {
 	}
 
 	if (incr >= 0) {		// brk grows
-		for (; ; ) { /* TODO: replace this */
+		for (sz1 = PGROUNDUP(sz); sz1 < PGROUNDUP(sz + incr); sz1 += PAGE_SIZE) { /* TODO: replace this */
 			kva = allocate_user_page_mm(mm, sz1, MM_AP_RW | MM_XN); 
 			if (!kva) {
 				W("allocate_user_page_mm failed");
@@ -612,10 +612,16 @@ int do_mem_abort(unsigned long addr, unsigned long esr, unsigned long elr) {
 	unsigned long dfs = (esr & 0b111111);
 
 	if (addr > USER_VA_END) {
-		E("do_mem_abort: bad user va? faulty addr 0x%lx > USER_VA_END %x", addr, 
-			USER_VA_END); 
-		E("esr 0x%lx, elr 0x%lx", esr, elr); 		
-		goto bad; 
+		// Q4: framebuffer is mapped at high user address (e.g. 0x3c000000)
+		// allow ranges that are explicitly mapped by move_to_user_mode_donut/exec0.
+		unsigned long *pte = map_page(myproc()->mm, addr & PAGE_MASK, 0 /*locate*/, 0 /*no alloc*/, 0);
+		if (!pte || !(*pte)) {
+			E("do_mem_abort: bad user va? faulty addr 0x%lx > USER_VA_END %x", addr,
+				USER_VA_END);
+			E("esr 0x%lx, elr 0x%lx", esr, elr);
+			goto bad;
+		}
+		// mapped framebuffer / high user address page; allow the normal page fault semantics.
 	}
 
 	/* whether the current exception is actually a translation fault? */		
