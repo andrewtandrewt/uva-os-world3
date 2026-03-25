@@ -687,10 +687,11 @@ static void _create_block_map(unsigned long *tbl,
 	unsigned long flags, int shift) {
 
 	/* TODO: your code here */
-	unsigned long idx;
-	for (unsigned long i = start; i < end; i += (1UL << shift), phys += (1UL << shift)) {
-		idx = (i >> shift) & (PTRS_PER_TABLE - 1);
-		tbl[idx] = phys | flags;
+	unsigned long idx   = (start >> shift) & (PTRS_PER_TABLE - 1);
+	unsigned long idx_e = (end   >> shift) & (PTRS_PER_TABLE - 1);
+ 
+	for (; idx <= idx_e; idx++, phys += (1UL << shift)) {
+		tbl[idx] = phys | flags | MM_TYPE_BLOCK;
 	}
 }
 
@@ -699,7 +700,7 @@ static void _create_block_map(unsigned long *tbl,
 	_create_block_map(tbl, phys, start, end, flags, PUD_SHIFT); /* TODO: replace this */
 
 #define create_block_map_section(tbl, phys, start, end, flags) \
-	_create_block_map(tbl, phys, start, end, flags, PMD_SHIFT); /* TODO: replace this */
+	_create_block_map(tbl, phys, start, end, flags, SECTION_SHIFT) /* TODO: replace this */
 
 // NB: we are still on PA
 // kern pgtable dir layout: PGD|PUD|PMD1|PMD2	each one page. total 4 pages
@@ -713,7 +714,7 @@ void create_kern_pgtables(void) {
 	memzero_aligned(pgd, 4 * PAGE_SIZE); /* TODO: replace this */
 
 	// allocate PUD & PMD1; link PGD (pg_dir)->PUD, and PUD->PMD1
-	create_table_entry(pgd, VA_START, PGD_SHIFT, 1); //changed
+	create_table_entry(pgd, VA_START, PGD_SHIFT, 1);
 	/* TODO: your code here */
 	create_table_entry(pud, VA_START, PUD_SHIFT, 1);
 
@@ -722,15 +723,18 @@ void create_kern_pgtables(void) {
 		VA_START + DEVICE_BASE - SECTION_SIZE, MMU_FLAGS); 
 
 	// 2. device memory (PMD1). Phys addr range: DEVICE_BASE--DEVICE_LOW(0x40000000)	
-	create_block_map_section(pmd1, DEVICE_BASE, VA_START + DEVICE_BASE, 
-        VA_START + DEVICE_LOW, MMU_DEVICE_FLAGS);/* TODO: replace this */
+	create_block_map_section(pmd1, DEVICE_BASE, VA_START+DEVICE_BASE, 
+		VA_START + DEVICE_LOW - SECTION_SIZE, MMU_DEVICE_FLAGS); /* TODO: replace this */
 	
 	// link PUD->PMD2
 	/* TODO: your code here */
-	create_table_entry(pud, VA_START + DEVICE_LOW, PUD_SHIFT, 2);
+	unsigned long next_pud_va = (VA_START) + ((1UL) << (PUD_SHIFT));
+	create_table_entry(pud, next_pud_va, PUD_SHIFT, 2);
 	// 3. extra device mem (PMD2). Phys addr range: DEVICE_LOW--+SECTION_SIZE
 	create_block_map_section(pmd2, DEVICE_LOW, 
-		VA_START + DEVICE_LOW, VA_START + SECTION_SIZE + DEVICE_LOW,MMU_DEVICE_FLAGS); /* TODO: replace this */
+		VA_START + DEVICE_LOW,
+		VA_START + DEVICE_LOW,
+		MMU_DEVICE_FLAGS); /* TODO: replace this */
 }
 
 /* A workaround for QEMU's quirks on MMU emulation, which also showcases how
@@ -766,7 +770,7 @@ void create_kern_idmap(void) {
 	memzero_aligned(pgd, 2 * PAGE_SIZE); /* TODO: replace this */
 
 	// allocate one PUD; link PGD (pg_dir)->PUD. 
-	create_table_entry(pgd, VA_START, PGD_SHIFT, 1); //Changed
+	create_table_entry(pgd, VA_START, PGD_SHIFT, 1);
 
 	//1. kernel mem (PUD). Phys addr range: PHYS_BASE, +PHYS_SIZE
 	// create_block_map_supersection(pud, PHYS_BASE, 

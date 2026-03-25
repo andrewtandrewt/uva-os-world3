@@ -701,9 +701,10 @@ int move_to_user_mode(unsigned long start, unsigned long size, unsigned long pc)
        an irq context); therefore, there will not be additional trapframes 
        created by irqs on the kernel stack.
     */
+
 	regs->pstate = PSR_MODE_EL0t;
-	regs->pc = 0; /* TODO: replace this */
-	regs->sp = 0; /* TODO: replace this */
+	regs->pc = pc; /* TODO: replace this */
+	regs->sp =  USER_VA_END; /* TODO: replace this */
     
     /* Map 2 code pages (instead of 1), so that we can experiment with 
        larger kuser code (e.g., donut) as well as small ones (printers).
@@ -715,12 +716,12 @@ int move_to_user_mode(unsigned long start, unsigned long size, unsigned long pc)
     memmove(code_page, (void *)start, PAGE_SIZE); // memory copy
 
     if ((code_page = allocate_user_page_mm(cur->mm, 
-        0 /*va*/, /* TODO: replace this */
+        PAGE_SIZE /*va*/, /* TODO: replace this */
         MMU_PTE_FLAGS | MM_AP_RW)) == 0) {
         release(&cur->mm->lock);
 		return -1;
 	}
-    memmove(code_page, 0, 0); /* TODO: replace this */
+    memmove(code_page, (void *)(start + PAGE_SIZE), size - PAGE_SIZE); /* TODO: replace this */
 
     /* XXX (Feb 2025): memmove the actual "size" instead of two pages */
 
@@ -734,7 +735,7 @@ int move_to_user_mode(unsigned long start, unsigned long size, unsigned long pc)
 	cur->mm->sz = cur->mm->codesz = size; 
 
 	/* make the task's pgtable tree effective */
-    set_pgd(0); /* TODO: replace this */
+    set_pgd(VA2PA(cur->mm->pgd)); /* TODO: replace this */
 
 	safestrcpy(cur->name, "initusr", sizeof(cur->name));
     release(&cur->mm->lock);

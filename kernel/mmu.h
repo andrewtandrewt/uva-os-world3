@@ -129,9 +129,8 @@ https://github.com/codingbelief/arm-architecture-reference-manual-for-armv8-a/bl
 
 #define MAIR_VALUE ( \
     (MT_DEVICE_nGnRnE_FLAGS << (MT_DEVICE_nGnRnE * 8)) | \
-    (MT_NORMAL_NC_FLAGS     << (MT_NORMAL_NC * 8))     | \
-    (MT_NORMAL_FLAGS        << (MT_NORMAL * 8))          \
-) /* TODO: replace this */
+    (MT_NORMAL_NC_FLAGS     << (MT_NORMAL_NC     * 8)) | \
+    (MT_NORMAL_FLAGS        << (MT_NORMAL        * 8)) ) /* TODO: replace this */
 
 #define MMU_FLAGS	 		(MM_TYPE_BLOCK | (MT_NORMAL << 2) | MM_ACCESS)	    /* block (eg section) granuarlity, memory */
 #define MMU_DEVICE_FLAGS	(MM_TYPE_BLOCK | (MT_DEVICE_nGnRnE << 2) | MM_ACCESS)	/* block (eg section) granuarlity, devices */
