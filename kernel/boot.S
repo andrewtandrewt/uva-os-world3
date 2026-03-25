@@ -127,7 +127,7 @@ setup_sp:
 	
 	// load the linking (virt) addr of kernel_main
 	/* TODO: your code here */
+	ldr	x2, =kernel_main
 	ldr x0, =SCTLR_VALUE // Turn on MMU. cf sysregs.h
 	msr	sctlr_el1, x0	// BOOM! after this, this core runs on virtual addr
-	ldr x2, =kernel_main
 	br 	x2				// Jump to kernel_main() (kernel.c)

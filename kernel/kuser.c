@@ -38,7 +38,7 @@ static void print_to_console(char *msg) {
 }
 
 void user_process_hello() {
-    print_to_console("Hello world from a user task\n\r");
+    print_to_console("Hello world from a user taskn\r");
 }
 
 void user_process_mario() {
