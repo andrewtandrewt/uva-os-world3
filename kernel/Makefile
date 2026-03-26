@@ -145,7 +145,7 @@ ASM_OBJS += $(BUILD_DIR)/utils_s.o
 
 # binary objs embedded in kernel8.img
 # nes0 elf binary, build out of kernel tree as a separate project
-BIN_OBJS += # TODO: replace this
+BIN_OBJS += $(BUILD_DIR)/nes-min_bin.o# TODO: replace this
 
 # font psf, for boot logo
 BIN_OBJS += $(BUILD_DIR)/font_psf.o

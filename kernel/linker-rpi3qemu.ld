@@ -26,7 +26,7 @@ SECTIONS
 	. = ALIGN(512);		/*sector aligned*/
 	nes_start = .; 
 	/* TODO: your code here */
-	.nes : { build-rpi3qemu/nes* (.data) }
+	.nes0 : { build-rpi3qemu/nes-min_bin.o (.data) }
 	/* we don't need to set "nes_end" */
 	
 	. = ALIGN(512);		/*sector aligned*/
