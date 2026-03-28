@@ -182,7 +182,7 @@ int exec0(const char *elfbase, char **argv_unused /*ignored*/) {
     // mmap fb area to user VM    
     for (; fb_pa < fb_pa_end; fb_pa += PAGE_SIZE) {
       unsigned long * ret = map_page(tmpmm, 
-          0,0, /* TODO: replace this */
+          fb_pa, fb_pa, /* TODO: replace this */
           1 /* alloc pgtable on demand*/, 
           MMU_PTE_FLAGS | MM_AP_RW /* perm */); 
       BUG_ON(!ret);     
@@ -216,7 +216,7 @@ int exec0(const char *elfbase, char **argv_unused /*ignored*/) {
   sp -= sp % 16;  // from riscv, arm64 may not need this
   if(sp < argbase)
     goto bad;
-  if(copyout(tmpmm, sp, 0, 0)<0) /* TODO: replace this */
+  if(copyout(tmpmm, sp, (char *)ustack, (argc+1)*sizeof(uint64))<0) /* TODO: replace this */
     goto bad;
 
   // arguments to user main(argc, argv)
@@ -229,7 +229,7 @@ int exec0(const char *elfbase, char **argv_unused /*ignored*/) {
   /* Commit to the user VM. free previous user mapping & pages. if any */
   regs->pc = elf.entry;  // initial program counter = main
   // set the initial stack pointer
-  regs->sp = 0; /* TODO: replace this */
+  regs->sp = sp; /* TODO: replace this */
   I("pid %d (%s) commit to user VM, sp 0x%lx", myproc()->pid, myproc()->name, sp);
 
   acquire(&p->mm->lock); 
@@ -243,7 +243,7 @@ int exec0(const char *elfbase, char **argv_unused /*ignored*/) {
   V("pid %d p->mm %lx p->mm->sz %lu", p->pid,(unsigned long)p->mm, p->mm->sz);
   kfree(tmpmm); 
   // make the pgtable tree effective
-  set_pgd(0); /* TODO: replace this */
+  set_pgd(p->mm->pgd); /* TODO: replace this */
   release(&p->mm->lock);
 
   I("pid %d exec succeeds", myproc()->pid);
